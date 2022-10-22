@@ -307,7 +307,7 @@ export class Aurora extends Stack {
         preferredWindow: props.backupWindow,
         retention: Duration.days(backupRetentionDays),
       },
-      parameterGroup: auroraParameterGroup,
+      // parameterGroup: auroraParameterGroup,
       instances: replicaInstances,
       iamAuthentication: true,
       storageEncrypted: false,
@@ -324,6 +324,7 @@ export class Aurora extends Stack {
         vpcSubnets: vpcSubnets,
         vpc: vpc,
         securityGroups: [dbsg],
+        parameterGroup: auroraParameterGroup
       },
     });
 
