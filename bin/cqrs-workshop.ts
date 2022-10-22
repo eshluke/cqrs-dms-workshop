@@ -9,11 +9,11 @@ const app = new cdk.App();
 
 const vpcStack = new VpcStack(app, 'VpcStack');
 
-const sinkDbStack = new AuroraStack(app, 'SinkDbStack', { 
-  description: "Workshop Sink DB Stack",
+const targetDbStack = new AuroraStack(app, 'TargetDbStack', { 
+  description: "Workshop Target DB Stack",
   vpcId: vpcStack.vpc.vpcId,
   subnetIds: vpcStack.privateSubnets.subnetIds,
-  dbName: "ws-sink",
+  dbName: "ws-target",
   engine: "mysql",
   instanceType: ec2.InstanceType.of(
     ec2.InstanceClass.R6G,
