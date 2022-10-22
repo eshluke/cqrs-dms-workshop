@@ -7,19 +7,18 @@ import { Aurora as AuroraStack } from '../lib/aurora';
 
 const app = new cdk.App();
 
-// const vpcStack = new VpcStack(app, 'VpcStack');
+const vpcStack = new VpcStack(app, 'VpcStack');
 
-// const sourceDbStack = new AuroraStack(app, 'WsSourceDbStack', { 
-//   description: "Workshop Source DB Stack",
-//   vpcId: vpcStack.vpc.vpcId,
-//   subnetIds: vpcStack.privateSubnets.subnetIds,
-//   dbName: "ws-source",
-//   engine: "mysql",
-//   instanceType: ec2.InstanceType.of(
-//     ec2.InstanceClass.R6G,
-//     ec2.InstanceSize.LARGE
-//   ),
-//   ingressSources: [ec2.Peer.ipv4(vpcStack.vpc.vpcCidrBlock)],
-//   auroraClusterUsername: 'admin',
-//   isDmsSource: true
-// });
+const sinkDbStack = new AuroraStack(app, 'SinkDbStack', { 
+  description: "Workshop Sink DB Stack",
+  vpcId: vpcStack.vpc.vpcId,
+  subnetIds: vpcStack.privateSubnets.subnetIds,
+  dbName: "ws-sink",
+  engine: "mysql",
+  instanceType: ec2.InstanceType.of(
+    ec2.InstanceClass.R6G,
+    ec2.InstanceSize.LARGE
+  ),
+  ingressSources: [ec2.Peer.ipv4(vpcStack.vpc.vpcCidrBlock)],
+  auroraClusterUsername: 'admin'
+});
