@@ -109,6 +109,16 @@ export interface AuroraProps extends StackProps {
    * @memberof AuroraProps
    */
   readonly engine?: string;
+  
+  /**
+   * the engine version for aurora mysql
+   *
+   *
+   * @type {rds.AuroraMysqlEngineVersion}
+   * @memberof AuroraProps
+   */
+  readonly mysqlEngineVersion?: rds.AuroraMysqlEngineVersion;
+  
   readonly enableBabelfish?:boolean;
 
   /**
@@ -246,7 +256,7 @@ export class Aurora extends Stack {
 
     if (props.engine == 'mysql') {
       auroraEngine = rds.DatabaseClusterEngine.auroraMysql({
-        version: rds.AuroraMysqlEngineVersion.VER_2_10_1,
+        version: props.mysqlEngineVersion ?? rds.AuroraMysqlEngineVersion.VER_2_10_1,
       });
     }
 
@@ -556,4 +566,3 @@ export class Aurora extends Stack {
   }
 
 }
-
