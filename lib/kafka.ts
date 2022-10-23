@@ -10,7 +10,7 @@ export interface KafkaStackProps extends cdk.StackProps {
 }
 
 export class KafkaStack extends cdk.Stack {
-  public kafkaCluster: msk.CfnCluster;
+  public readonly kafkaCluster: msk.CfnCluster;
 
   constructor(scope: Construct, id: string, props: KafkaStackProps) {
     super(scope, id, props);
@@ -28,10 +28,6 @@ export class KafkaStack extends cdk.Stack {
         securityGroups: [kafkaSecurityGroup.securityGroupId],
         storageInfo: {
           ebsStorageInfo: {
-            provisionedThroughput: {
-              enabled: false,
-              volumeThroughput: 123,
-            },
             volumeSize: 100,
           },
         },
@@ -44,20 +40,26 @@ export class KafkaStack extends cdk.Stack {
         revision: 1,
       },
       enhancedMonitoring: 'PER_TOPIC_PER_BROKER',
+      encryptionInfo: {
+        encryptionInTransit: {
+          clientBroker: 'TLS_PLAINTEXT',
+          inCluster: false,
+        },
+      },
     });
   }
 
   createKafkaConfiguration(version: string): msk.CfnConfiguration {
     const serverProperties = `
-    auto.create.topics.enable=true
-    delete.topic.enable=true
-    default.replication.factor=2
-    min.insync.replicas=1
-    `;
+auto.create.topics.enable=true
+delete.topic.enable=true
+default.replication.factor=2
+min.insync.replicas=1
+`;
 
-    return new msk.CfnConfiguration(this, 'MyCfnConfiguration', {
-      name: 'ProjectKafkaClusterConfig',
-      serverProperties: Buffer.from(serverProperties, 'binary').toString('base64'),
+    return new msk.CfnConfiguration(this, 'KafkaClusterConfig', {
+      name: 'KafkaClusterConfig',
+      serverProperties,
       // the properties below are optional
       description: 'initial config',
       kafkaVersionsList: [version],
