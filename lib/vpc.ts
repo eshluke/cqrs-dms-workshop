@@ -33,5 +33,18 @@ export class VpcStack extends cdk.Stack {
     this.privateSubnets = this.vpc.selectSubnets({
       subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS
     });
+
+    new cdk.CfnOutput(this, 'VpcId', {
+      exportName: 'VpcId',
+      value: this.vpc.vpcId,
+    });
+    new cdk.CfnOutput(this, 'PrivateSubnets', {
+      exportName: 'PrivateSubnetIds',
+      value: this.privateSubnets.subnetIds.join(','),
+    });
+    new cdk.CfnOutput(this, 'PublicSubnets', {
+      exportName: 'PublicSubnetIds',
+      value: this.publicSubnets.subnetIds.join(','),
+    });
   }
 }
