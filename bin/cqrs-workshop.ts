@@ -8,7 +8,7 @@ import { Aurora as AuroraStack } from '../lib/aurora-snapshot';
 
 const app = new cdk.App();
 
-const vpcStack = new VpcStack(app, 'VpcStack');
+const vpcStack = new VpcStack(app, 'VpcStack', { vpcName: 'project-vpc' });
 
 const targetDbStack = new AuroraStack(app, 'TargetDbStack', { 
   description: "Workshop Target DB Stack",
