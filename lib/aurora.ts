@@ -109,6 +109,16 @@ export interface AuroraProps extends StackProps {
    * @memberof AuroraProps
    */
   readonly engine?: string;
+  
+  /**
+   * the engine version for aurora mysql
+   *
+   *
+   * @type {rds.AuroraMysqlEngineVersion}
+   * @memberof AuroraProps
+   */
+  readonly mysqlEngineVersion?: rds.AuroraMysqlEngineVersion;
+  
   readonly enableBabelfish?:boolean;
 
   /**
@@ -135,8 +145,17 @@ export interface AuroraProps extends StackProps {
    * 
    * @type {string}
    * @default false
+   * @memberof AuroraProps
    */
   readonly isDmsSource?:boolean;
+
+  /**
+   * RDS snapshot ARN
+   * 
+   * @type {string}
+   * @memberof AuroraProps
+   */
+  readonly snapshot?:string;
 }
 
 
@@ -180,10 +199,7 @@ export class Aurora extends Stack {
     const subnets: any[] = [];
 
     for (let subnetId of subnetIds!) {
-      const subid = subnetId
-        .replace('-', '')
-        .replace('_', '')
-        .replace(' ', '');
+      const subid = subnetId;
       subnets.push(
         ec2.Subnet.fromSubnetAttributes(this, subid, {
           subnetId: subid,
@@ -237,7 +253,7 @@ export class Aurora extends Stack {
 
     if (props.engine == 'mysql') {
       auroraEngine = rds.DatabaseClusterEngine.auroraMysql({
-        version: rds.AuroraMysqlEngineVersion.VER_2_10_1,
+        version: props.mysqlEngineVersion ?? rds.AuroraMysqlEngineVersion.VER_2_10_1,
       });
     }
 
@@ -251,15 +267,15 @@ export class Aurora extends Stack {
     }
 
     // aurora params
-    const auroraParameterGroup = new rds.ParameterGroup(
-      this,
-      'AuroraParameterGroup',
-      {
-        engine: auroraEngine,
-        description: id + ' Parameter Group',
-        parameters: auroraParameters,
-      },
-    );
+    // const auroraParameterGroup = new rds.ParameterGroup(
+    //   this,
+    //   'AuroraParameterGroup',
+    //   {
+    //     engine: auroraEngine,
+    //     description: id + ' Parameter Group',
+    //     parameters: auroraParameters,
+    //   },
+    // );
 
     const auroraClusterSecret = new secretsmanager.Secret(
       this,
@@ -300,33 +316,61 @@ export class Aurora extends Stack {
       cloudwatchLogsExports = ['slowquery'];
     }
 
-    const aurora_cluster = new rds.DatabaseCluster(this, 'AuroraDatabase', {
-      engine: auroraEngine,
-      credentials: auroraClusterCrendentials,
-      backup: {
-        preferredWindow: props.backupWindow,
-        retention: Duration.days(backupRetentionDays),
-      },
-      // parameterGroup: auroraParameterGroup,
-      instances: replicaInstances,
-      iamAuthentication: true,
-      storageEncrypted: false,
-      // storageEncryptionKey: kmsKey,
-      deletionProtection: false,
-      removalPolicy: RemovalPolicy.SNAPSHOT,
-      copyTagsToSnapshot: true,
-      cloudwatchLogsExports: cloudwatchLogsExports,
-      cloudwatchLogsRetention: logs.RetentionDays.ONE_MONTH,
-      preferredMaintenanceWindow: props.preferredMaintenanceWindow,
-      instanceIdentifierBase: props.dbName,
-      instanceProps: {
-        instanceType: props.instanceType,
-        vpcSubnets: vpcSubnets,
-        vpc: vpc,
-        securityGroups: [dbsg],
-        parameterGroup: auroraParameterGroup
-      },
-    });
+    let aurora_cluster: rds.DatabaseCluster;
+    if (props.snapshot) {
+      aurora_cluster = new rds.DatabaseClusterFromSnapshot(this, 'AuroraDatabase', {
+        engine: auroraEngine,
+        credentials: auroraClusterCrendentials,
+        instances: replicaInstances,
+        iamAuthentication: false,
+        storageEncrypted: false,
+        deletionProtection: false,
+        removalPolicy: RemovalPolicy.SNAPSHOT,
+        copyTagsToSnapshot: true,
+        cloudwatchLogsExports: cloudwatchLogsExports,
+        cloudwatchLogsRetention: logs.RetentionDays.ONE_MONTH,
+        preferredMaintenanceWindow: props.preferredMaintenanceWindow,
+        instanceIdentifierBase: props.dbName,
+        parameters: auroraParameters,
+        instanceProps: {
+          instanceType: props.instanceType,
+          vpcSubnets: vpcSubnets,
+          vpc: vpc,
+          securityGroups: [dbsg],
+          // parameterGroup: auroraParameterGroup
+        },
+        snapshotIdentifier: props.snapshot,
+      });
+
+    } else {
+      aurora_cluster = new rds.DatabaseCluster(this, 'AuroraDatabase', {
+        engine: auroraEngine,
+        credentials: auroraClusterCrendentials,
+        backup: {
+          preferredWindow: props.backupWindow,
+          retention: Duration.days(backupRetentionDays),
+        },
+        instances: replicaInstances,
+        iamAuthentication: false,
+        storageEncrypted: false,
+        // storageEncryptionKey: kmsKey,
+        deletionProtection: false,
+        removalPolicy: RemovalPolicy.SNAPSHOT,
+        copyTagsToSnapshot: true,
+        cloudwatchLogsExports: cloudwatchLogsExports,
+        cloudwatchLogsRetention: logs.RetentionDays.ONE_MONTH,
+        preferredMaintenanceWindow: props.preferredMaintenanceWindow,
+        instanceIdentifierBase: props.dbName,
+        parameters: auroraParameters,
+        instanceProps: {
+          instanceType: props.instanceType,
+          vpcSubnets: vpcSubnets,
+          vpc: vpc,
+          securityGroups: [dbsg],
+          // parameterGroup: auroraParameterGroup
+        },
+      });
+    }
 
     aurora_cluster.applyRemovalPolicy(RemovalPolicy.RETAIN);
 
@@ -521,4 +565,3 @@ export class Aurora extends Stack {
   }
 
 }
-

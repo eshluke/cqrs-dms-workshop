@@ -3,7 +3,8 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
-import { Aurora as AuroraStack } from '../lib/aurora-snapshot';
+import { Aurora as AuroraStack } from '../lib/aurora';
+import { KafkaStack } from '../lib/kafka';
 
 const VPC_ID = '< REPLACE >';
 const VPC_CIDR = '< REPLACE >';
@@ -42,4 +43,10 @@ const sourceDbStack = new AuroraStack(app, 'SourceDbStack', {
   auroraClusterUsername: 'admin',
   snapshot: SOURCE_DB_SNAPSHOT_ARN,
   isDmsSource: true,
+});
+
+const kafkaStack = new KafkaStack(app, 'KafkaStack', { 
+  vpcId: VPC_ID, 
+  vpcCidr: VPC_CIDR,
+  privateSubnetIds: PRIVATE_SUBNET_IDS,
 });
