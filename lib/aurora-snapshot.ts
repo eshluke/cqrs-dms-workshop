@@ -267,15 +267,15 @@ export class Aurora extends Stack {
     }
 
     // aurora params
-    const auroraParameterGroup = new rds.ParameterGroup(
-      this,
-      'AuroraParameterGroup',
-      {
-        engine: auroraEngine,
-        description: id + ' Parameter Group',
-        parameters: auroraParameters,
-      },
-    );
+    // const auroraParameterGroup = new rds.ParameterGroup(
+    //   this,
+    //   'AuroraParameterGroup',
+    //   {
+    //     engine: auroraEngine,
+    //     description: id + ' Parameter Group',
+    //     parameters: auroraParameters,
+    //   },
+    // );
 
     const auroraClusterSecret = new secretsmanager.Secret(
       this,
@@ -331,12 +331,13 @@ export class Aurora extends Stack {
         cloudwatchLogsRetention: logs.RetentionDays.ONE_MONTH,
         preferredMaintenanceWindow: props.preferredMaintenanceWindow,
         instanceIdentifierBase: props.dbName,
+        parameters: auroraParameters,
         instanceProps: {
           instanceType: props.instanceType,
           vpcSubnets: vpcSubnets,
           vpc: vpc,
           securityGroups: [dbsg],
-          parameterGroup: auroraParameterGroup
+          // parameterGroup: auroraParameterGroup
         },
         snapshotIdentifier: props.snapshot,
       });
@@ -360,12 +361,13 @@ export class Aurora extends Stack {
         cloudwatchLogsRetention: logs.RetentionDays.ONE_MONTH,
         preferredMaintenanceWindow: props.preferredMaintenanceWindow,
         instanceIdentifierBase: props.dbName,
+        parameters: auroraParameters,
         instanceProps: {
           instanceType: props.instanceType,
           vpcSubnets: vpcSubnets,
           vpc: vpc,
           securityGroups: [dbsg],
-          parameterGroup: auroraParameterGroup
+          // parameterGroup: auroraParameterGroup
         },
       });
     }
