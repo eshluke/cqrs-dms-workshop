@@ -37,5 +37,6 @@ const sourceDbStack = new AuroraStack(app, 'SourceDbStack', {
   ),
   ingressSources: [ec2.Peer.ipv4(vpcStack.vpc.vpcCidrBlock)],
   auroraClusterUsername: 'admin',
-  snapshot: '< SNAPSHOT_ARN >' // TODO: replace!!!!
+  snapshot: '< SNAPSHOT_ARN >', // TODO: replace!!!!
+  isDmsSource: true,
 });
