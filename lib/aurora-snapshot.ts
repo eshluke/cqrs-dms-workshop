@@ -199,10 +199,7 @@ export class Aurora extends Stack {
     const subnets: any[] = [];
 
     for (let subnetId of subnetIds!) {
-      const subid = subnetId
-        .replace('-', '')
-        .replace('_', '')
-        .replace(' ', '');
+      const subid = subnetId;
       subnets.push(
         ec2.Subnet.fromSubnetAttributes(this, subid, {
           subnetId: subid,
