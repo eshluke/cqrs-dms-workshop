@@ -31,7 +31,15 @@ export class FargateStack extends cdk.Stack {
       desiredCapacity: 1,
     });
 
-    const kafkaUiService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "MyFargateService", {
+    const kafkaUiService = this.createKafkaUiService(cluster, props);
+    new CfnOutput(this, 'OutputParameterKafkaUiService', {
+      exportName: 'KafkaUIServiceURL',
+      value: 'http://' + kafkaUiService.loadBalancer.loadBalancerDnsName,
+    });
+  }
+
+  createKafkaUiService(cluster: ecs.ICluster, props: FargateStackProps):ecs_patterns.ApplicationLoadBalancedFargateService {
+    return new ecs_patterns.ApplicationLoadBalancedFargateService(this, "MyFargateService", {
       cluster, // Required
       cpu: 512, // Default is 256
       memoryLimitMiB: 2048, // Default is 512
@@ -49,11 +57,6 @@ export class FargateStack extends cdk.Stack {
       loadBalancerName: 'cqrs-dms',
       openListener: true,
       protocol: ApplicationProtocol.HTTP,
-    });
-
-    new CfnOutput(this, 'OutputParameterKafkaUiService', {
-      exportName: 'KafkaUIServiceURL',
-      value: 'http://' + kafkaUiService.loadBalancer.loadBalancerDnsName,
     });
   }
 }
