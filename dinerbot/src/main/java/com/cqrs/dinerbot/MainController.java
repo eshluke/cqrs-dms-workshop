@@ -1,10 +1,7 @@
 package com.cqrs.dinerbot;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class MainController {
@@ -14,6 +11,11 @@ public class MainController {
 
     public MainController(DinerBot dinerBot) {
         this.dinerBot = dinerBot;
+    }
+
+    @GetMapping
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("UP");
     }
 
     @PostMapping
