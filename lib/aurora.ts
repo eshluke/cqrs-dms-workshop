@@ -264,6 +264,8 @@ export class Aurora extends Stack {
     }
     if (props.isDmsSource && props.engine == 'mysql') {
       auroraParameters['binlog_format'] = 'ROW';
+      auroraParameters['binlog_row_image'] = 'Full';
+      auroraParameters['binlog_checksum'] = 'NONE';
     }
 
     // aurora params
