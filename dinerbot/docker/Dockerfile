@@ -2,7 +2,6 @@ FROM        gradle:7.4-jdk11-alpine AS build
 
 WORKDIR     /home/gradle/src
 
-# download dependencies
 COPY        --chown=gradle:gradle build.gradle settings.gradle /home/gradle/src/
 RUN         gradle --no-daemon clean build
 
