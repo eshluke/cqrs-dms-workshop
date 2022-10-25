@@ -23,12 +23,14 @@ const targetDbStack = new AuroraStack(app, 'TargetDbStack', {
   subnetIds: PRIVATE_SUBNET_IDS,
   dbName: "ws-target",
   engine: "mysql",
+  mysqlEngineVersion: rds.AuroraMysqlEngineVersion.of('8.0.mysql_aurora.3.02.1', '8.0'),
   instanceType: ec2.InstanceType.of(
     ec2.InstanceClass.T4G,
     ec2.InstanceSize.LARGE
   ),
   ingressSources: [ec2.Peer.ipv4(VPC_CIDR)],
   auroraClusterUsername: 'admin',
+  snapshot: SOURCE_DB_SNAPSHOT_ARN,
   isDmsSource: true,
 });
 

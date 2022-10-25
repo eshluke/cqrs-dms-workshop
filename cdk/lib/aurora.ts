@@ -309,7 +309,7 @@ export class Aurora extends Stack {
 
       aurora_cluster = new rds.DatabaseClusterFromSnapshot(this, 'AuroraDatabase', {
         engine: auroraEngine,
-        snapshotCredentials: auroraClusterCrendentials,
+        // snapshotCredentials: auroraClusterCrendentials,
         instances: replicaInstances,
         iamAuthentication: false,
         storageEncrypted: false,
