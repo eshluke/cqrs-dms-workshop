@@ -50,5 +50,10 @@ export class FargateStack extends cdk.Stack {
       openListener: true,
       protocol: ApplicationProtocol.HTTP,
     });
+
+    new CfnOutput(this, 'OutputParameterKafkaUiService', {
+      exportName: 'KafkaUIServiceURL',
+      value: 'http://' + kafkaUiService.loadBalancer.loadBalancerDnsName,
+    });
   }
 }
