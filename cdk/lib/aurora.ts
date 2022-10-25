@@ -72,7 +72,7 @@ export interface AuroraProps extends StackProps {
    * @type {string}
    * @memberof AuroraProps
    */
-  readonly auroraClusterUsername?: string;
+  readonly auroraClusterUsername: string;
 
   /**
    *
@@ -109,7 +109,7 @@ export interface AuroraProps extends StackProps {
    * @memberof AuroraProps
    */
   readonly engine?: string;
-  
+
   /**
    * the engine version for aurora mysql
    *
@@ -118,7 +118,7 @@ export interface AuroraProps extends StackProps {
    * @memberof AuroraProps
    */
   readonly mysqlEngineVersion?: rds.AuroraMysqlEngineVersion;
-  
+
   readonly enableBabelfish?:boolean;
 
   /**
@@ -142,7 +142,7 @@ export interface AuroraProps extends StackProps {
 
   /**
    * if true, adds 'binlog_format' to the parameter group
-   * 
+   *
    * @type {string}
    * @default false
    * @memberof AuroraProps
@@ -151,7 +151,7 @@ export interface AuroraProps extends StackProps {
 
   /**
    * RDS snapshot ARN
-   * 
+   *
    * @type {string}
    * @memberof AuroraProps
    */
@@ -160,9 +160,12 @@ export interface AuroraProps extends StackProps {
 
 
 export class Aurora extends Stack {
+
+  public readonly generatedSecret?: string;
+
 //export class Aurora extends Construct {
   constructor(scope: Construct, id: string, props:AuroraProps) {
-  //constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    //constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id);
 
     let subnetIds = props.subnetIds;
@@ -201,9 +204,9 @@ export class Aurora extends Stack {
     for (let subnetId of subnetIds!) {
       const subid = subnetId;
       subnets.push(
-        ec2.Subnet.fromSubnetAttributes(this, subid, {
-          subnetId: subid,
-        }),
+          ec2.Subnet.fromSubnetAttributes(this, subid, {
+            subnetId: subid,
+          }),
       );
     }
 
@@ -279,31 +282,10 @@ export class Aurora extends Stack {
     //   },
     // );
 
-    const auroraClusterSecret = new secretsmanager.Secret(
-      this,
-      'AuroraClusterCredentials',
-      {
-        secretName: props.dbName + 'AuroraClusterCredentials',
-        description: props.dbName + 'AuroraClusterCrendetials',
-        generateSecretString: {
-          excludeCharacters: "\"@/\\ '",
-          generateStringKey: 'password',
-          passwordLength: 30,
-          secretStringTemplate: JSON.stringify({ username: props.auroraClusterUsername }),
-        },
-      },
-    );
-
-    // aurora credentials
-    const auroraClusterCrendentials= rds.Credentials.fromSecret(
-      auroraClusterSecret,
-      props.auroraClusterUsername,
-    );
-
     if (instanceType == null || instanceType == undefined) {
       instanceType = ec2.InstanceType.of(
-        ec2.InstanceClass.BURSTABLE4_GRAVITON,
-        ec2.InstanceSize.MEDIUM,
+          ec2.InstanceClass.BURSTABLE4_GRAVITON,
+          ec2.InstanceSize.MEDIUM,
       );
     }
 
@@ -320,9 +302,14 @@ export class Aurora extends Stack {
 
     let aurora_cluster: rds.DatabaseCluster;
     if (props.snapshot) {
+      const auroraClusterCrendentials= rds.SnapshotCredentials.fromGeneratedSecret(
+          props.auroraClusterUsername,
+          { excludeCharacters: "\"@/\\ '", },
+      );
+
       aurora_cluster = new rds.DatabaseClusterFromSnapshot(this, 'AuroraDatabase', {
         engine: auroraEngine,
-        credentials: auroraClusterCrendentials,
+        snapshotCredentials: auroraClusterCrendentials,
         instances: replicaInstances,
         iamAuthentication: false,
         storageEncrypted: false,
@@ -345,6 +332,26 @@ export class Aurora extends Stack {
       });
 
     } else {
+      const auroraClusterSecret = new secretsmanager.Secret(
+          this,
+          'AuroraClusterCredentials',
+          {
+            secretName: props.dbName + 'AuroraClusterCredentials',
+            description: props.dbName + 'AuroraClusterCrendetials',
+            generateSecretString: {
+              excludeCharacters: "\"@/\\ '",
+              generateStringKey: 'password',
+              passwordLength: 30,
+              secretStringTemplate: JSON.stringify({ username: props.auroraClusterUsername }),
+            },
+          },
+      );
+      // aurora credentials
+      const auroraClusterCrendentials= rds.Credentials.fromSecret(
+          auroraClusterSecret,
+          props.auroraClusterUsername,
+      );
+
       aurora_cluster = new rds.DatabaseCluster(this, 'AuroraDatabase', {
         engine: auroraEngine,
         credentials: auroraClusterCrendentials,
@@ -482,22 +489,22 @@ export class Aurora extends Stack {
 
 
     dashboard.addWidgets(
-      widgetDbConnections,
-      widgetCpuUtilizaton
+        widgetDbConnections,
+        widgetCpuUtilizaton
     );
     dashboard.addWidgets(
-      widgetTotalBackupStorageBilled,
-      widgetFreeLocalStorage
+        widgetTotalBackupStorageBilled,
+        widgetFreeLocalStorage
     );
     dashboard.addWidgets(
-      widgetFreeableMemory,
-      widgetVolumeBytes,
-      widgetVolumeIops,
+        widgetFreeableMemory,
+        widgetVolumeBytes,
+        widgetVolumeIops,
     );
     dashboard.addWidgets(
-      widget_network_receive_throughput,
-      widgetReadLatency,
-      widgetDeadlocks,
+        widget_network_receive_throughput,
+        widgetReadLatency,
+        widgetDeadlocks,
     );
 
     new CfnOutput(this, 'OutputSecretName', {
@@ -515,6 +522,7 @@ export class Aurora extends Stack {
       exportName: aurora_cluster.stack.stackName+':GetSecretValue',
       value: 'aws secretsmanager get-secret-value --secret-id '+ aurora_cluster.secret?.secretArn,
     });
+    this.generatedSecret = aurora_cluster.secret?.secretArn;
 
 
     new CfnOutput(this, 'OutputInstanceIdentifiers', {
