@@ -20,7 +20,7 @@ const targetDbStack = new AuroraStack(app, 'TargetDbStack', {
   dbName: "ws-target",
   engine: "mysql",
   instanceType: ec2.InstanceType.of(
-    ec2.InstanceClass.R6G,
+    ec2.InstanceClass.T4G,
     ec2.InstanceSize.LARGE
   ),
   ingressSources: [ec2.Peer.ipv4(VPC_CIDR)],
@@ -36,7 +36,7 @@ const sourceDbStack = new AuroraStack(app, 'SourceDbStack', {
   engine: "mysql",
   mysqlEngineVersion: rds.AuroraMysqlEngineVersion.of('8.0.mysql_aurora.3.02.1', '8.0'),
   instanceType: ec2.InstanceType.of(
-    ec2.InstanceClass.R6G,
+    ec2.InstanceClass.T4G,
     ec2.InstanceSize.LARGE
   ),
   ingressSources: [ec2.Peer.ipv4(VPC_CIDR)],
