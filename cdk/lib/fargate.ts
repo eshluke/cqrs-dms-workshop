@@ -9,6 +9,8 @@ import {ApplicationProtocol} from "aws-cdk-lib/aws-elasticloadbalancingv2";
 
 export interface FargateStackProps extends cdk.StackProps {
   readonly vpcId: string;
+  readonly kafkaBootstrapServers: string;
+  readonly kafkaZookeeperAddresses: string;
 }
 
 export class FargateStack extends cdk.Stack {
@@ -16,19 +18,8 @@ export class FargateStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: FargateStackProps) {
     super(scope, id, props);
 
-    let bootstrapServers = new cdk.CfnParameter(this, "bootstrapServers", {
-      type: "String",
-      description: "Bootstrap address for Kafka brokers."
-    });
-
-    let zookeeperAddresses = new cdk.CfnParameter(this, "zookeeperAddresses", {
-      type: "String",
-      description: "Bootstrap address for ZooKeeper servers."
-    });
-
-    const vpc = ec2.Vpc.fromVpcAttributes(this, 'ExistingVPC', {
+    const vpc = ec2.Vpc.fromLookup(this, 'ExistingVPC', {
       vpcId: props.vpcId,
-      availabilityZones: Fn.getAzs(),
     });
 
     const cluster = new ecs.Cluster(this, 'Cluster', {
@@ -50,16 +41,14 @@ export class FargateStack extends cdk.Stack {
         containerPort: 8080,
         environment: {
           'KAFKA_CLUSTERS_0_NAME': 'cqrs-cluster',
-          'KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS': bootstrapServers.valueAsString,
-          'KAFKA_CLUSTERS_0_ZOOKEEPER': zookeeperAddresses.valueAsString,
+          'KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS': props.kafkaBootstrapServers,
+          'KAFKA_CLUSTERS_0_ZOOKEEPER': props.kafkaZookeeperAddresses,
         }
       },
       publicLoadBalancer: true, // Default is true
       loadBalancerName: 'cqrs-dms',
       openListener: true,
-      listenerPort: 8080,
       protocol: ApplicationProtocol.HTTP,
-      targetProtocol: ApplicationProtocol.HTTP,
     });
   }
 }
