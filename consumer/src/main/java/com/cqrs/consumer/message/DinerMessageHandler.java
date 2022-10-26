@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@KafkaListener(topics = {"${kafka.topic.diner}"})
 public class DinerMessageHandler {
 
+    @KafkaListener(topics = {"${kafka.topic.diner}"})
     public void onMessage(DmsMessage message) {
         log.info("metadata: {}, paylod: {}", message.getMetadata(), message.getPayload());
         // 메세지 타입 분류하여 적절한 핸들러에 위임 (Full Load vs CDC)
