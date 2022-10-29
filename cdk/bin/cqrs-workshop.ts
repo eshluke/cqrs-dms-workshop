@@ -5,7 +5,6 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import { Aurora as AuroraStack } from '../lib/aurora';
 import { KafkaStack } from '../lib/kafka';
-import { DmsStack } from '../lib/dms';
 import { FargateStack } from '../lib/fargate';
 
 const VPC_ID = '< REPLACE >';
@@ -55,11 +54,6 @@ const kafkaStack = new KafkaStack(app, 'KafkaStack', {
   vpcId: VPC_ID,
   vpcCidr: VPC_CIDR,
   privateSubnetIds: PRIVATE_SUBNET_IDS,
-});
-
-const dmsStack = new DmsStack(app, 'DmsStack', {
-  sourceDbSecret: sourceDbStack.generatedSecret!,
-  targetDbSecret: targetDbStack.generatedSecret!
 });
 
 new FargateStack(app, 'FargateStack', {
